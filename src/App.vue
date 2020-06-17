@@ -59,8 +59,25 @@
               </el-form>
             </div>
           </div>
+          <div >
+            <div id="myChart" :style="{width: '1400px', height: '800px',margin:'auto'} " v-show="this.asideClick.singleQuery==true"></div>
+            <el-pagination
+              v-show="this.isPaginationShow1==true"
+              layout="prev, pager, next"
+              :total="1000"
+              align="center">
+            </el-pagination>
+          </div>
+          <div>
+            <div id="myChart2" :style="{width: '1400px', height: '800px',margin:'auto'} " v-show="this.asideClick.doubleQuery==true" ></div>
+            <el-pagination
+              v-show="this.isPaginationShow2==true"
+              layout="prev, pager, next"
+              :total="1000"
+              align="center">
+            </el-pagination>
+          </div>
 
-          <div id="myChart" :style="{width: '1000px', height: '800px',margin:'auto'}"></div>
         </el-main>
       </el-container>
     </el-container>
@@ -76,6 +93,8 @@ export default {
         singleQuery:false,
         doubleQuery:false
       },
+      isPaginationShow1:false,
+      isPaginationShow2:false,
       query1:{
         entity:''
       },
@@ -83,25 +102,74 @@ export default {
         entity1: '',
         entity2: ''
       },
+      searched1:'',
+      searched21:'',
+      searched22:'',
 
       singleOption:{
-        title: { text: 'Single Search' },
         tooltip: {},
+        animationDurationUpdate: function(idx) {
+          // 越往后的数据延迟越大
+          return idx * 100;
+        },
+        animationEasingUpdate: 'bounceIn',
         lineStyle: {
           width: 5,
           curveness: 0.2
         },
         series: [{
-          name: '关系',
+          name: 'Relation',
           type: 'graph',
+          layout: 'force',
+          label:
+            {
+              show:true,                  //是否显示标签。
+              position:"inside"
+            },
+          roam: true,
+          force:{
+            layoutAnimation: true,
+            repulsion: 7000
+          },
           focusNodeAdjacency: true,
           edgeSymbol:['circle', 'arrow'],
+          edgeSymbolSize:[20,35],
           data: [],
           links:[]
         }],
       },
-      myChart:{}
-
+      doubleOption:{
+        tooltip: {},
+        animationDurationUpdate: function(idx) {
+          // 越往后的数据延迟越大
+          return idx * 100;
+        },
+        animationEasingUpdate: 'bounceIn',
+        lineStyle: {
+          width: 5,
+          curveness: 0.2
+        },
+        series: [{
+          name: 'Relation',
+          type: 'graph',
+          layout: 'force',
+          label:
+            {
+              show:true,                  //是否显示标签。
+              position:"inside"
+            },
+          roam: true,
+          force:{
+            layoutAnimation: true,
+            repulsion: 5000
+          },
+          focusNodeAdjacency: true,
+          edgeSymbol:['circle', 'arrow'],
+          edgeSymbolSize:[20,35],
+          data: [],
+          links:[]
+        }],
+      }
     }
   },
   watch: {
@@ -123,7 +191,6 @@ export default {
     // }
   },
   mounted(){
-    this.readJSON1();
 
   },
 
@@ -131,10 +198,18 @@ export default {
     clickSingle(){
       this.asideClick.singleQuery=this.asideClick.singleQuery===false?true:false
       this.asideClick.doubleQuery=false
+      this.isPaginationShow1=false
+      this.isPaginationShow2=false
+
+      this.asideClick.doubleQuery==false
     },
     clickDouble(){
       this.asideClick.doubleQuery=this.asideClick.doubleQuery===false?true:false
       this.asideClick.singleQuery=false
+      this.isPaginationShow1=false
+      this.isPaginationShow2=false
+      this.asideClick.singleQuery==false
+
 
     },
 
@@ -145,6 +220,9 @@ export default {
           type:'warning'
         })
       }
+      else {
+        this.readJSON1();
+      }
     },
     onSubmit2(){
       if (this.query2.entity1==''||this.query2.entity2==''){
@@ -152,113 +230,137 @@ export default {
           message:'请先输入查询的实体',
           type:'warning'
         })
+      }else{
+        this.readJSON2();
       }
     },
-    drawLine(){
-      // 基于准备好的dom，初始化echarts实例
-      let myChart = this.$echarts.init(document.getElementById('myChart'))
 
-      myChart.setOption({
-        title: { text: 'test' },
-        tooltip: {},
-        lineStyle: {
-          width: 5,
-          curveness: 0.2
-      },
-        series: [{
-          name: '销量',
-          type: 'graph',
-          focusNodeAdjacency: true,
-          edgeSymbol:['circle', 'arrow'],
-          data: [
-            {
-              name: '1',
-              x: 10,
-              y: 10,
-              value: 10
-            }, {
-              name: '2',
-              x: 100,
-              y: 100,
-              value: 20,
-              symbolSize: 20,
-              itemStyle: {
-                normal: {
-                  color: 'red'
-                }
-              }
-            }
-          ],
-          links:[
-            {
-              source: '1',
-              target: '2'
-            }, {
-              source: '2',
-              target: '3'
-            }
-          ]
-
-        }]
-      });
-    },
     async readJSON1(){
-      console.log(this.singleOption.series);
-      var myChart = this.$echarts.init(document.getElementById('myChart'));
 
+      var myChart = this.$echarts.init(document.getElementById('myChart'));
       myChart.setOption(this.singleOption);
         let res = await this.axios.get('http://localhost:8080/static/SingleLinks.json');
         var d = res.data.data.links;
-        var searched = res.data.data.name;
+        this.searched1 = res.data.data.name;
+        var id=[]
           // console.log(d);
           // console.log(d[1]);
           // console.log(typeof d);
           var nodesData=[];
           var nodesLink=[];
           var nodeData = {
-            name: searched,
-            x: 10,
-            y: 10,
-            value: 10
+            name: this.searched1,
+            value: 1606682,
+            draggable: true,
+            symbolSize: 100,
+            itemStyle: {
+              normal: {
+                borderColor: 'rgb(27, 94, 93)',
+                borderWidth: 40,
+                shadowBlur: 122200,
+                shadowColor: 'rgb(27, 94, 93)',
+                color: 'rgb(27, 94, 93)'
+              }
+            }
           };
           nodesData.push(nodeData);
           var size = d.length;
           for (let i = 0; i < size; i++){
             var tempData={};
             var tempLink={};
-            // tempData.id=i+1;
-            tempData.name=d[i].n;
-            // console.log(tempData);
-            tempData.x=10+i;
-            tempData.y=10+i;
-            tempData.value=d[i].r;
-            // console.log(typeof d[i].d);
+            //找不到
+            if (id.indexOf(d[i].n)==-1){
+              id.push(d[i].n)
+              tempData.name=d[i].n;
+              tempData.draggable=true
+              tempData.value=d[i].u;
+              tempData.symbolSize=30;
+              tempData.itemStyle={
+                normal: {
+                  borderColor: 'rgb(27, 94, 93)',
+                  borderWidth: 40,
+                  shadowBlur: 122200,
+                  shadowColor: 'rgb(27, 94, 93)',
+                  color: 'rgb(27, 94, 93)'
+                }
+              }
+              nodesData.push(tempData);
+            }
+
             if (d[i].d === -1) {
               tempLink.source=d[i].n;
-              tempLink.target=searched;
+              tempLink.target=this.searched1;
             }else {
-              tempLink.source=searched;
+              tempLink.source=this.searched1;
               tempLink.target=d[i].n;
             }
             tempLink.name=i;
             tempLink.des=d[i].r;
-            nodesData.push(tempData);
             nodesLink.push(tempLink);
           }
-          console.log(nodesData);
-          // console.log(nodesLink);
-          // console.log(nodesData);
 
-          this.singleOption.series.data = nodesData;
-          this.singleOption.series.links = nodesLink;
+          this.singleOption.series[0].data = nodesData;
+          this.singleOption.series[0].links = nodesLink;
+          this.singleOption.title= { text: 'Single Search of '+`${this.query1.entity}` }
           myChart.setOption(this.singleOption);
+          this.isPaginationShow1=true;
     },
-    readJSON2(){
-      this.axios.get('http://localhost:8080/static/test2.json').then(res=>{
-        console.log(res.data.data[0].nodes)
-        let linkedGraph = res.data.data[0]
+    async readJSON2(){
 
-      })
+        var myChart = this.$echarts.init(document.getElementById('myChart2'));
+        myChart.setOption(this.doubleOption);
+        var res = await this.axios.get('http://localhost:8080/static/new.json');
+        var d = res.data.data.nodes;
+        var nodesData=[];
+        var nodesLink=[];
+
+
+        //nodes
+
+        for (var index1 in d){
+          var tempData={};
+          tempData.name=d[index1].n;
+          tempData.draggable=true
+          // tempData.value=d[i].u;
+          tempData.symbolSize=30;
+          tempData.itemStyle={
+            normal: {
+              borderColor: 'rgb(27, 94, 93)',
+              borderWidth: 40,
+              shadowBlur: 122200,
+              shadowColor: 'rgb(27, 94, 93)',
+              color: 'rgb(27, 94, 93)'
+            }
+          };
+          nodesData.push(tempData);
+
+        }
+        //links
+        for (var index2 in d){
+          var tempLink={};
+          if(d[index2].links!=undefined){
+            var linkList = d[index2].links;
+            var size = linkList.length
+            for (var j=0;j<size;j++){
+              if (linkList[j].d=== 1){
+                tempLink.source=linkList[j].n;
+                tempLink.target=d[index2].n;
+              }else {
+                tempLink.source=d[index2].n;
+                tempLink.target=linkList[j].n;
+              }
+
+              nodesLink.push(tempLink);
+            }
+          }
+        }
+        this.doubleOption.series[0].data=nodesData;
+        this.doubleOption.series[0].links=nodesLink;
+        this.doubleOption.title={text:'Double Search of '+`${this.query2.entity1}`+' and '+`${this.query2.entity2}`}
+        myChart.setOption(this.doubleOption);
+        this.isPaginationShow2=true;
+
+
     }
 
 
