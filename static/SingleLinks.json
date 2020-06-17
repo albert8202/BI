@@ -1,0 +1,69 @@
+{
+  "code": 0,
+  "data": {
+    "links": [
+      {
+        "d": -1,
+        "n": "China_Smart_Logistic_Network",
+        "r": "keyPerson",
+        "u": 3172107
+      },
+      {
+        "d": 1,
+        "n": "Hangzhou",
+        "r": "birthPlace",
+        "u": 40976
+      },
+      {
+        "d": 1,
+        "n": "China",
+        "r": "birthPlace",
+        "u": 379
+      },
+      {
+        "d": 1,
+        "n": "Alibaba_Group",
+        "r": "occupation",
+        "u": 1610750
+      },
+      {
+        "d": 1,
+        "n": "Hangzhou_Normal_University",
+        "r": "almaMater",
+        "u": 1612177
+      },
+      {
+        "d": -1,
+        "n": "Alibaba_Group",
+        "r": "foundedBy",
+        "u": 1610750
+      },
+      {
+        "d": 1,
+        "n": "Zhejiang",
+        "r": "birthPlace",
+        "u": 5269
+      },
+      {
+        "d": 1,
+        "n": "Jack_Ma__1",
+        "r": "occupation",
+        "u": 1608270
+      },
+      {
+        "d": -1,
+        "n": "Tmall",
+        "r": "author",
+        "u": 1608672
+      },
+      {
+        "d": 1,
+        "n": "Cheung_Kong_Graduate_School_of_Business",
+        "r": "almaMater",
+        "u": 1612176
+      }
+    ],
+    "name": "Jack_Ma",
+    "uniqueId": 1606682
+  }
+}
