@@ -99,33 +99,32 @@ export default {
           data: [],
           links:[]
         }],
-        data:[],
-        links:[]
-      }
+      },
+      myChart:{}
 
     }
   },
   watch: {
     //观察option的变化
-    singleOption: {
-      handler(newVal, oldVal) {
-        console.log("bian")
-        if (this.myChart) {
-          if (newVal) {
-            this.myChart.setOption(newVal);
-          } else {
-            this.myChart.setOption(oldVal);
-          }
-        } else {
-          console.log("else")
-        }
-      },
-      deep: true //对象内部属性的监听，关键。
-    }
+    // singleOption: {
+    //   handler(newVal, oldVal) {
+    //     console.log("bian")
+    //     if (this.myChart) {
+    //       if (newVal) {
+    //         this.myChart.setOption(newVal);
+    //       } else {
+    //         this.myChart.setOption(oldVal);
+    //       }
+    //     } else {
+    //       console.log("else")
+    //     }
+    //   },
+    //   deep: true //对象内部属性的监听，关键。
+    // }
   },
   mounted(){
-    this.readJSON1()
-    let myChart = this.$echarts.init(document.getElementById('myChart'))
+    this.readJSON1();
+
   },
 
   methods:{
@@ -172,7 +171,6 @@ export default {
           focusNodeAdjacency: true,
           edgeSymbol:['circle', 'arrow'],
           data: [
-
             {
               name: '1',
               x: 10,
@@ -205,9 +203,10 @@ export default {
       });
     },
     async readJSON1(){
+      console.log(this.singleOption.series);
       var myChart = this.$echarts.init(document.getElementById('myChart'));
-      singleOption:{}
-      myChart.setOption(this.singleOption,true);
+
+      myChart.setOption(this.singleOption);
         let res = await this.axios.get('http://localhost:8080/static/SingleLinks.json');
         var d = res.data.data.links;
         var searched = res.data.data.name;
@@ -217,7 +216,6 @@ export default {
           var nodesData=[];
           var nodesLink=[];
           var nodeData = {
-            id:0,
             name: searched,
             x: 10,
             y: 10,
@@ -228,7 +226,7 @@ export default {
           for (let i = 0; i < size; i++){
             var tempData={};
             var tempLink={};
-            tempData.id=i+1;
+            // tempData.id=i+1;
             tempData.name=d[i].n;
             // console.log(tempData);
             tempData.x=10+i;
@@ -244,19 +242,16 @@ export default {
             }
             tempLink.name=i;
             tempLink.des=d[i].r;
-            console.log(tempLink);
-
             nodesData.push(tempData);
             nodesLink.push(tempLink);
           }
+          console.log(nodesData);
           // console.log(nodesLink);
           // console.log(nodesData);
-          this.singleOption.data=nodesData;
-          this.singleOption.links=nodesLink;
 
-
+          this.singleOption.series.data = nodesData;
+          this.singleOption.series.links = nodesLink;
           myChart.setOption(this.singleOption);
-
     },
     readJSON2(){
       this.axios.get('http://localhost:8080/static/test2.json').then(res=>{
