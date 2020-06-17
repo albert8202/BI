@@ -305,16 +305,16 @@ export default {
           myChart.setOption(this.singleOption);
           this.isPaginationShow1=true;
     },
+
+
     async readJSON2(){
 
         var myChart = this.$echarts.init(document.getElementById('myChart2'));
         myChart.setOption(this.doubleOption);
-        var res = await this.axios.get('http://localhost:8080/static/new.json');
+        var res = await this.axios.get('http://localhost:8080/static/directed.json');
         var d = res.data.data.nodes;
         var nodesData=[];
         var nodesLink=[];
-
-
         //nodes
 
         for (var index1 in d){
@@ -337,19 +337,25 @@ export default {
         }
         //links
         for (var index2 in d){
+          //遍历结点
           var tempLink={};
-          if(d[index2].links!=undefined){
-            var linkList = d[index2].links;
-            var size = linkList.length
-            for (var j=0;j<size;j++){
-              if (linkList[j].d=== 1){
-                tempLink.source=linkList[j].n;
-                tempLink.target=d[index2].n;
-              }else {
-                tempLink.source=d[index2].n;
-                tempLink.target=linkList[j].n;
-              }
 
+          if(d[index2].links!=undefined){
+            //有出边
+            var linkList = d[index2].links;
+            var size = linkList.length;
+            //测试
+            if (d[index2].n=='Jack_Ma') {
+              //应该输出9为啥输出7？？
+              console.log(d[index2].n.length)
+            }
+            //遍历边
+            for (var j=0;j<size;j++){
+              tempLink.source=d[index2].n;
+              tempLink.target=linkList[j].n;
+              if (linkList[j]=='Zhejiang'&&d[index2].n=='Jack_Ma') {
+                console.log("哈哈哈")
+              }
               nodesLink.push(tempLink);
             }
           }
