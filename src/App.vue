@@ -239,7 +239,7 @@ export default {
 
       var myChart = this.$echarts.init(document.getElementById('myChart'));
       myChart.setOption(this.singleOption);
-        let res = await this.axios.get('http://localhost:8080/static/SingleLinks.json');
+        let res = await this.axios.get('/static/SingleLinks.json');
         var d = res.data.data.links;
         this.searched1 = res.data.data.name;
         var id=[]
@@ -311,15 +311,14 @@ export default {
 
         var myChart = this.$echarts.init(document.getElementById('myChart2'));
         myChart.setOption(this.doubleOption);
-        var res = await this.axios.get('http://localhost:8080/static/directed.json');
+        var res = await this.axios.get('/static/directed.json');
         var d = res.data.data.nodes;
         var nodesData=[];
         var nodesLink=[];
         //nodes
-
-        for (var index1 in d){
+        var create_node=(name)=>{
           var tempData={};
-          tempData.name=d[index1].n;
+          tempData.name=name;
           tempData.draggable=true
           // tempData.value=d[i].u;
           tempData.symbolSize=30;
@@ -332,34 +331,34 @@ export default {
               color: 'rgb(27, 94, 93)'
             }
           };
-          nodesData.push(tempData);
-
+          return tempData
         }
         //links
+
+        var name_set=new Set()
+        console.log(d)
         for (var index2 in d){
           //遍历结点
-          var tempLink={};
-
-          if(d[index2].links!=undefined){
+          name_set.add(d[index2].n)
+          if(d[index2].links){
             //有出边
             var linkList = d[index2].links;
             var size = linkList.length;
             //测试
-            if (d[index2].n=='Jack_Ma') {
-              //应该输出9为啥输出7？？
-              console.log(d[index2].n.length)
-            }
             //遍历边
             for (var j=0;j<size;j++){
+              var tempLink={};
+              name_set.add(linkList[j].n)
               tempLink.source=d[index2].n;
               tempLink.target=linkList[j].n;
-              if (linkList[j]=='Zhejiang'&&d[index2].n=='Jack_Ma') {
-                console.log("哈哈哈")
-              }
               nodesLink.push(tempLink);
             }
           }
         }
+        for(var name of name_set){
+          nodesData.push(create_node(name))
+        }
+        console.log(nodesData)
         this.doubleOption.series[0].data=nodesData;
         this.doubleOption.series[0].links=nodesLink;
         this.doubleOption.title={text:'Double Search of '+`${this.query2.entity1}`+' and '+`${this.query2.entity2}`}
