@@ -20,7 +20,7 @@
               <el-menu-item index="1-2" style="font-size: 15px" v-on:click="clickDouble()">双体查询</el-menu-item>
             </el-menu-item-group>
           </el-submenu>
-          <el-menu-item index="2">
+          <el-menu-item index="2" v-on:click="clickAnalysis()">
             <i class="el-icon-menu"></i>
             <span slot="title" style="font-size: 18px">智能分析</span>
           </el-menu-item>
@@ -75,9 +75,28 @@
                 </el-form-item>
               </el-form>
             </div>
+            <div class="query-two-entity"v-show="this.asideClick.analysis==true">
+              <el-form :inline="true" :model="query3" class="demo-form-inline">
+                <el-form-item label="实体1">
+                  <el-input v-model="query3.entity1" placeholder="输入查询的实体1"></el-input>
+                </el-form-item>
+                <el-form-item label="实体2">
+                  <el-input v-model="query3.entity2" placeholder="输入查询的实体2"></el-input>
+                </el-form-item>
+
+                <el-form-item style="margin-left: 60px;">
+                  <el-button type="primary" @click="onSubmit3">查询</el-button>
+                </el-form-item>
+              </el-form>
+            </div>
+
           </div>
+
+
+
+
+
           <div>
-            
             <div
               id="myChart"
               :style="{width: '1100px', height: '600px',margin:'auto', border: '1px solid grey'} "
@@ -90,6 +109,7 @@
               align="center"
             ></el-pagination>
           </div>
+
           <div>
             <div
               id="myChart2"
@@ -103,6 +123,17 @@
               align="center"
             ></el-pagination>
           </div>
+          <div style="display: flex" v-show="this.asideClick.analysis==true">
+            <div >
+              <div id="myChart3" :style="{width: '600px', height: '600px',margin:'auto'} " align="center"></div>
+              <div align="center">Jaccard相似度</div>
+            </div>
+            <div >
+              <div id="myChart4" :style="{width: '600px', height: '600px',margin:'auto'} " align="center"></div>
+              <div align="center">Cosine相似度</div>
+            </div>
+          </div>
+
         </el-main>
       </el-container>
     </el-container>
@@ -114,9 +145,11 @@ export default {
   name: "App",
   data() {
     return {
+      host:'http://yzchnb.xicp.io:28102/',
       asideClick: {
         singleQuery: false,
-        doubleQuery: false
+        doubleQuery: false,
+        analysis:false
       },
       isPaginationShow1: false,
       isPaginationShow2: false,
@@ -126,6 +159,10 @@ export default {
       query2: {
         entity1: "",
         entity2: ""
+      },
+      query3:{
+        entity1:'',
+        entity1:''
       },
       jumpNum: 0,
       searched1: "",
@@ -203,6 +240,30 @@ export default {
             links: []
           }
         ]
+      },
+      analyseOptions:{
+        jOption:{
+          tooltip: {},
+          series:[
+            {
+              name: 'jaccard',
+              type: 'gauge',
+              detail: {formatter: '{value}%'},
+              data: [{value: 50, name: 'Jaccard相似度'}]
+            }
+          ]
+        },
+        cOption:{
+          tooltip: {},
+          series:[
+            {
+              name: 'cosine',
+              type: 'gauge',
+              detail: {formatter: '{value}%'},
+              data: [{value:50, name: 'Cosine相似度'}]
+            }
+          ]
+        }
       }
     };
   },
@@ -320,7 +381,7 @@ export default {
           var tempData = {};
           var tempLink = {};
           //找不到
-          
+
           if (!name_set.has(d[i].n)) {
             name_set.add(d[i].n);
             tempData = create_node(d[i].n);
@@ -347,24 +408,48 @@ export default {
         }
         chart.setOption(option)
       });
-      
+
     },
     clickSingle() {
-      this.asideClick.singleQuery =
-        this.asideClick.singleQuery === false ? true : false;
-      this.asideClick.doubleQuery = false;
-      this.isPaginationShow1 = false;
-      this.isPaginationShow2 = false;
+      this.asideClick.singleQuery=this.asideClick.singleQuery===false?true:false
+      this.asideClick.doubleQuery=false
+      this.isPaginationShow1=false
+      this.isPaginationShow2=false
+      this.asideClick.analysis=false
 
       this.asideClick.doubleQuery == false;
     },
     clickDouble() {
-      this.asideClick.doubleQuery =
-        this.asideClick.doubleQuery === false ? true : false;
-      this.asideClick.singleQuery = false;
-      this.isPaginationShow1 = false;
-      this.isPaginationShow2 = false;
-      this.asideClick.singleQuery == false;
+      this.asideClick.doubleQuery=this.asideClick.doubleQuery===false?true:false
+      this.asideClick.singleQuery=false
+      this.isPaginationShow1=false
+      this.isPaginationShow2=false
+      this.asideClick.analysis=false
+    },
+
+    clickAnalysis(){
+      console.log(this.asideClick)
+      this.asideClick.analysis=this.asideClick.analysis===false?true:false
+      this.asideClick.singleQuery=false
+      this.asideClick.doubleQuery=false
+      this.isPaginationShow1=false
+      this.isPaginationShow2=false
+
+    },
+    onSubmit3(){
+      console.log("clicked");
+      if(this.query3.entity1==''||this.query3.entity2==''){
+        this.$message({
+          message:'请输入查询的实体',
+          type:'warning'
+        })
+
+      }
+      else{
+        this.readJSON3(this.query3.entity1,this.query3.entity2);
+
+      }
+
     },
 
     onSubmit1() {
@@ -528,7 +613,30 @@ export default {
       };
       myChart.setOption(this.doubleOption);
       this.isPaginationShow2 = true;
+    },
+    async readJSON3(_name1,_name2){
+      var req = this.host+'query/getSimilarityByTwoNodes';
+      var res = await this.axios(req,{
+        params:{
+          name1:_name1,
+          name2:_name2
+        }
+      });
+
+      console.log(res)
+      var myChart1 = this.$echarts.init(document.getElementById('myChart3'));
+      var myChart2 = this.$echarts.init(document.getElementById('myChart4'));
+      myChart1.setOption(this.analyseOptions.jOption);
+      myChart2.setOption(this.analyseOptions.cOption);
+      this.analyseOptions.jOption.series[0].data[0].value = Number((res.data.data.Jaccard*100).toFixed(1));
+      this.analyseOptions.cOption.series[0].data[0].value = Number((res.data.data.Cosine*100).toFixed(1));
+      console.log( this.analyseOptions.jOption.series[0].data[0].value)
+      console.log(this.analyseOptions.cOption.series[0].data[0].value)
+      myChart1.setOption(this.analyseOptions.jOption);
+      myChart2.setOption(this.analyseOptions.cOption);
+
     }
+
   }
 };
 </script>
