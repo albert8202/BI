@@ -79,7 +79,7 @@
           <div>
             <div
               id="myChart"
-              :style="{width: '1400px', height: '800px',margin:'auto'} "
+              :style="{width: '1100px', height: '600px',margin:'auto', border: '1px solid grey'} "
               v-show="this.asideClick.singleQuery==true"
             ></div>
             <el-pagination
@@ -92,7 +92,7 @@
           <div>
             <div
               id="myChart2"
-              :style="{width: '1400px', height: '800px',margin:'auto'} "
+              :style="{width: '1100px', height: '600px',margin:'auto', border: '1px solid grey'} "
               v-show="this.asideClick.doubleQuery==true"
             ></div>
             <el-pagination
@@ -473,13 +473,6 @@ export default {
     async readJSON2(_node1, _node2, _limit, _jump, _skip) {
       var myChart = this.myChart2;
       myChart.setOption(this.doubleOption);
-      myChart.on('mouseup',function(params){
-        var option=myChart.getOption();
-        option.series[0].data[params.dataIndex].x=params.event.offsetX;
-        option.series[0].data[params.dataIndex].y=params.event.offsetY;
-        option.series[0].data[params.dataIndex].fixed=true;
-        myChart.setOption(option);
-      });
       var req = "http://yzchnb.xicp.io:28102/query/getPathsByTwoNodes";
       var res = await this.axios.get(req, {
         params: {
