@@ -297,7 +297,7 @@ export default {
       var option = chart.getOption();
       var search_func = (links, source, target) => {
         for (var i = 0; i < links.length; ++i) {
-          if (source == links[i].source && source == links[i].target) {
+          if (source == links[i].source && target == links[i].target) {
             return true;
           }
         }
@@ -347,7 +347,7 @@ export default {
           tempLink.des = d[i].r;
           nodesLink.push(tempLink);
         }
-        chart.setOption(option)
+        //chart.setOption(option)
       });
       
     },
