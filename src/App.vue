@@ -154,12 +154,12 @@ export default {
             roam: true,
             force: {
               edgeLength: 120,
-              layoutAnimation: true,
               repulsion: 1000
             },
             focusNodeAdjacency: true,
             edgeSymbol: ["", "arrow"],
             edgeSymbolSize: [10, 35],
+            symbolSize: 29,
             data: [],
             links: [],
             name_set: new Set(),
@@ -257,11 +257,6 @@ export default {
       tempData.draggable = true;
       // tempData.value=d[i].u;
       tempData.symbolSize = 30;
-      if (name === "Jack_Ma") {
-        console.log("aaa");
-        console.log(this.query2.entity1);
-        console.log(this.query2.entity2);
-      }
       if (name === this.query2.entity1) {
         tempData.itemStyle = {
           normal: {
