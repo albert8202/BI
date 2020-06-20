@@ -1,3 +1,4 @@
+
 <template>
   <div id="app">
     <el-container>
@@ -53,7 +54,17 @@
                 <el-form-item label="实体2">
                   <el-input v-model="query2.entity2" placeholder="输入查询的实体2"></el-input>
                 </el-form-item>
-                <el-form-item>
+
+                <el-dropdown size="medium" split-button type="primary" style="margin-top: 2px"@command="handleCommand">
+                  跳数：{{this.jumpNum}}
+                  <el-dropdown-menu slot="dropdown">
+                    <el-dropdown-item command="1">1</el-dropdown-item>
+                    <el-dropdown-item command="2">2</el-dropdown-item>
+                    <el-dropdown-item command="3">3</el-dropdown-item>
+                    <el-dropdown-item command="4">4</el-dropdown-item>
+                  </el-dropdown-menu>
+                </el-dropdown>
+                <el-form-item style="margin-left: 60px;">
                   <el-button type="primary" @click="onSubmit2">查询</el-button>
                 </el-form-item>
               </el-form>
@@ -102,6 +113,7 @@ export default {
         entity1: '',
         entity2: ''
       },
+      jumpNum:0,
       searched1:'',
       searched21:'',
       searched22:'',
@@ -126,7 +138,7 @@ export default {
               show:true,                  //是否显示标签。
               position:"inside"
             },
-          roam: true,
+          roam: false,
           force:{
             layoutAnimation: true,
             repulsion: 7000
@@ -160,8 +172,8 @@ export default {
             },
           roam: true,
           force:{
-            layoutAnimation: true,
-            repulsion: 5000
+            layoutAnimation: false,
+            repulsion: 7000
           },
           focusNodeAdjacency: true,
           edgeSymbol:['circle', 'arrow'],
@@ -221,7 +233,8 @@ export default {
         })
       }
       else {
-        this.readJSON1();
+
+        this.readJSON1(this.query1.entity,0,100);
       }
     },
     onSubmit2(){
@@ -230,16 +243,30 @@ export default {
           message:'请先输入查询的实体',
           type:'warning'
         })
-      }else{
-        this.readJSON2();
+      }
+      if (this.jumpNum==0){
+        this.$message({
+          message:'请选择跳数',
+          type:'warning'
+        })
+      }
+      else{
+        this.readJSON2(this.query2.entity1,this.query2.entity2,20,this.jumpNum,0);
       }
     },
+    handleCommand(_command){
+      this.jumpNum=Number(_command);
+      console.log(this.jumpNum);
+    },
 
-    async readJSON1(){
+    async readJSON1(_nodeName,_start,_limit){
 
       var myChart = this.$echarts.init(document.getElementById('myChart'));
       myChart.setOption(this.singleOption);
-        let res = await this.axios.get('/static/SingleLinks.json');
+
+      var req="http://yzchnb.xicp.io:28102/query/getSingleLinksByNamePageable"+'/'+_nodeName+'/'+_start+'/'+_limit;
+      console.log(req);
+        let res = await this.axios.get(req);
         var d = res.data.data.links;
         this.searched1 = res.data.data.name;
         var id=[]
@@ -307,12 +334,23 @@ export default {
     },
 
 
-    async readJSON2(){
+    //_skip跳过前面多少结点
+    async readJSON2(_node1,_node2,_limit,_jump,_skip){
 
         var myChart = this.$echarts.init(document.getElementById('myChart2'));
         myChart.setOption(this.doubleOption);
-        var res = await this.axios.get('/static/directed.json');
-        var d = res.data.data.nodes;
+        var req ='http://yzchnb.xicp.io:28102/query/getPathsByTwoNodes';
+        var res = await this.axios.get(req,{
+          params:{
+            endNodeName:_node2,
+            limit_num:_limit,
+            max_jump_num:_jump,
+            skip_num:_skip,
+            startNodeName:_node1
+          }
+        });
+      console.log(res);
+      var d = res.data.data.nodes;
         var nodesData=[];
         var nodesLink=[];
         //nodes
@@ -322,15 +360,44 @@ export default {
           tempData.draggable=true
           // tempData.value=d[i].u;
           tempData.symbolSize=30;
-          tempData.itemStyle={
-            normal: {
-              borderColor: 'rgb(27, 94, 93)',
-              borderWidth: 40,
-              shadowBlur: 122200,
-              shadowColor: 'rgb(27, 94, 93)',
-              color: 'rgb(27, 94, 93)'
+          if (name==="Jack_Ma") {
+            console.log("aaa");
+            console.log(this.query2.entity1);
+            console.log(this.query2.entity2);
+          }
+          if (name===this.query2.entity1){
+            tempData.itemStyle={
+              normal: {
+                borderColor: 'rgb(27, 20, 93)',
+                borderWidth: 40,
+                shadowBlur: 122200,
+                shadowColor: 'rgb(27, 20, 93)',
+                color: 'rgb(27, 20, 93)'
+              }
             }
-          };
+          }
+          else if(name===this.query2.entity2){
+            tempData.itemStyle={
+              normal: {
+                borderColor: 'rgb(100, 200, 93)',
+                borderWidth: 40,
+                shadowBlur: 122200,
+                shadowColor: 'rgb(100, 200, 93)',
+                color: 'rgb(100, 200, 93)'
+              }
+            }
+          }
+          else {
+            tempData.itemStyle={
+              normal: {
+                borderColor: 'rgb(27, 94, 93)',
+                borderWidth: 40,
+                shadowBlur: 122200,
+                shadowColor: 'rgb(27, 94, 93)',
+                color: 'rgb(27, 94, 93)'
+              }
+            };
+          }
           return tempData
         }
         //links
@@ -364,8 +431,6 @@ export default {
         this.doubleOption.title={text:'Double Search of '+`${this.query2.entity1}`+' and '+`${this.query2.entity2}`}
         myChart.setOption(this.doubleOption);
         this.isPaginationShow2=true;
-
-
     }
 
 
