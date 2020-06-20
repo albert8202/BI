@@ -151,14 +151,15 @@ export default {
               show: true, //是否显示标签。
               position: "inside"
             },
-            roam: false,
+            roam: true,
             force: {
+              edgeLength: 120,
               layoutAnimation: true,
-              repulsion: 7000
+              repulsion: 1000
             },
             focusNodeAdjacency: true,
-            edgeSymbol: ["circle", "arrow"],
-            edgeSymbolSize: [20, 35],
+            edgeSymbol: ["", "arrow"],
+            edgeSymbolSize: [10, 35],
             data: [],
             links: [],
             name_set: new Set(),
@@ -190,12 +191,13 @@ export default {
             },
             roam: true,
             force: {
-              layoutAnimation: false,
-              repulsion: 7000
+              edgeLength: 120,
+              repulsion: 2000
             },
             focusNodeAdjacency: true,
-            edgeSymbol: ["circle", "arrow"],
-            edgeSymbolSize: [20, 35],
+            edgeSymbol: ["", "arrow"],
+            edgeSymbolSize: [10, 35],
+            symbolSize: 29,
             data: [],
             links: []
           }
@@ -347,7 +349,7 @@ export default {
           tempLink.des = d[i].r;
           nodesLink.push(tempLink);
         }
-        //chart.setOption(option)
+        chart.setOption(option)
       });
       
     },
