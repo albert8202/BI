@@ -406,6 +406,13 @@ export default {
     async readJSON1(_nodeName, _start, _limit) {
       var myChart = this.$echarts.init(document.getElementById("myChart"));
       myChart.setOption(this.singleOption);
+      myChart.on('mouseup',function(params){
+        var option=myChart.getOption();
+        option.series[0].data[params.dataIndex].x=params.event.offsetX;
+        option.series[0].data[params.dataIndex].y=params.event.offsetY;
+        option.series[0].data[params.dataIndex].fixed=true;
+        myChart.setOption(option);
+      });
 
       var req =
         "http://yzchnb.xicp.io:28102/query/getSingleLinksByNamePageable" +
@@ -466,6 +473,13 @@ export default {
     async readJSON2(_node1, _node2, _limit, _jump, _skip) {
       var myChart = this.myChart2;
       myChart.setOption(this.doubleOption);
+      myChart.on('mouseup',function(params){
+        var option=myChart.getOption();
+        option.series[0].data[params.dataIndex].x=params.event.offsetX;
+        option.series[0].data[params.dataIndex].y=params.event.offsetY;
+        option.series[0].data[params.dataIndex].fixed=true;
+        myChart.setOption(option);
+      });
       var req = "http://yzchnb.xicp.io:28102/query/getPathsByTwoNodes";
       var res = await this.axios.get(req, {
         params: {
