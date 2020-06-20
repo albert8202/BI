@@ -77,6 +77,7 @@
             </div>
           </div>
           <div>
+            
             <div
               id="myChart"
               :style="{width: '1100px', height: '600px',margin:'auto', border: '1px solid grey'} "
