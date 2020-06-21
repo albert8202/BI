@@ -43,6 +43,12 @@
                 <el-form-item>
                   <el-button type="primary" @click="onSubmit1">查询</el-button>
                 </el-form-item>
+                <el-form-item v-show="this.isPaginationShow1==true">
+                  <el-button type="primary" icon="el-icon-arrow-left" @click="onPrev1">上一页</el-button>
+                  <span>{{this.query1.page}}</span>
+                  <el-button type="primary"@click="onNext1">下一页<i class="el-icon-arrow-right el-icon--right"></i></el-button>
+                </el-form-item>
+
               </el-form>
             </div>
 
@@ -54,6 +60,7 @@
                 <el-form-item label="实体2">
                   <el-input v-model="query2.entity2" placeholder="输入查询的实体2"></el-input>
                 </el-form-item>
+
 
                 <el-dropdown
                   size="medium"
@@ -72,6 +79,11 @@
                 </el-dropdown>
                 <el-form-item style="margin-left: 60px;">
                   <el-button type="primary" @click="onSubmit2">查询</el-button>
+                </el-form-item>
+                <el-form-item v-show="this.isPaginationShow2==true">
+                  <el-button type="primary" icon="el-icon-arrow-left" @click="onPrev2">上一页</el-button>
+                  <span>{{this.query2.page}}</span>
+                  <el-button type="primary"@click="onNext2">下一页<i class="el-icon-arrow-right el-icon--right"></i></el-button>
                 </el-form-item>
               </el-form>
             </div>
@@ -95,12 +107,7 @@
 
 
           <div>
-            <div align="center" style="margin-bottom: 4px" v-show="this.isPaginationShow1==true">
-              <el-button-group >
-                <el-button type="primary" icon="el-icon-arrow-left" @click="onPrev1">上一页</el-button>
-                <el-button type="primary"@click="onNext1">下一页<i class="el-icon-arrow-right el-icon--right"></i></el-button>
-              </el-button-group>
-            </div>
+
             <div
               id="myChart"
               :style="{width: '1100px', height: '600px',margin:'auto', border: '1px solid grey'} "
@@ -115,12 +122,12 @@
           </div>
 
           <div>
-            <div align="center" style="margin-bottom: 4px" v-show="this.isPaginationShow2==true">
-              <el-button-group >
-                <el-button type="primary" icon="el-icon-arrow-left"@click="onPrev2">上一页</el-button>
-                <el-button type="primary"@click="onNext2">下一页<i class="el-icon-arrow-right el-icon--right"></i></el-button>
-              </el-button-group>
-            </div>
+            <!--<div align="center" style="margin-bottom: 4px" v-show="this.isPaginationShow2==true">-->
+              <!--<el-button-group >-->
+                <!--<el-button type="primary" icon="el-icon-arrow-left"@click="onPrev2">上一页</el-button>-->
+                <!--<el-button type="primary"@click="onNext2">下一页<i class="el-icon-arrow-right el-icon&#45;&#45;right"></i></el-button>-->
+              <!--</el-button-group>-->
+            <!--</div>-->
             <div
               id="myChart2"
               :style="{width: '1100px', height: '600px',margin:'auto', border: '1px solid grey'} "
@@ -167,14 +174,22 @@ export default {
       isPaginationShow2: false,
       query1: {
         entity: "",
-        limitNum:50,
-        current:0
+        limitNum:20,
+        current:{
+          start:0,
+          end:0
+        },
+        page:0
       },
       query2: {
         entity1: "",
         entity2: "",
-        limitNum:50,
-        current:0
+        limitNum:20,
+        current:{
+          start:0,
+          end:0
+        },
+        page:0
       },
       query3:{
         entity1:'',
@@ -252,7 +267,7 @@ export default {
             type: "graph",
             layout: "force",
             label: {
-              show: true, //是否显示标签。
+              show: true, //是否显示标签
               position: "inside"
             },
             edgeLabel: {
@@ -498,8 +513,9 @@ export default {
           type: "warning"
         });
       } else {
-        this.readJSON1(this.query1.entity, 0, 100);
-        this.query1.current+=100;
+        this.readJSON1(this.query1.entity, 0, 20);
+        this.query1.current.end+=20;
+        this.query1.page+=1;
       }
     },
     onSubmit2() {
@@ -522,33 +538,54 @@ export default {
           this.jumpNum,
           0
         );
-        this.query2.current+=20;
+        this.query2.current.end+=20;
+        this.query2.page+=1;
       }
     },
 
     //分页
     onNext1(){
       console.log("query1 next");
-      this.readJSON1(this.query1.entity,this.query1.current,this.query1.limitNum);
-      this.query1.current+=this.query1.limitNum;
+      this.readJSON1(this.query1.entity,this.query1.current.end,this.query1.limitNum);
+      this.query1.current.start=this.query1.current.end
+      this.query1.current.end+=this.query1.limitNum
+      this.query1.page+=1;
+
     },
 
     onPrev1(){
-      console.log("query1 previous");
+      // console.log("query1 previous");
+      // console.log(this.query1.current)
+      this.query1.current.start=(this.query1.current.start-this.query1.limitNum) < 0 ? 0:(this.query1.current.start-this.query1.limitNum);
+      this.readJSON1(this.query1.entity,this.query1.current.start,this.query1.limitNum);
+      // console.log(this.query1.current.start, this.query1.current.end,typeof this.query1.limitNum);
 
-      this.query1.current=this.query1.current-this.query1.limitNum < 0 ? 0:this.query1.current-this.query1.limitNum;
-      this.readJSON1(this.query1.entity,this.query1.current,this.query1.limitNum);
+      this.query1.current.end+=this.query1.limitNum;
 
-    },
+      if (this.query1.current.start==0){
+        this.query1.page=1;
+      }
+      else this.query1.page-=1;
+
+
+  },
     onNext2(){
       console.log("query2 next");
-      this.readJSON2(this.query2.entity1,this.query2.entity2,this.query2.limitNum,this.jumpNum, this.query2.current);
-      this.query2.current+=this.query2.limitNum;
+      this.readJSON2(this.query2.entity1,this.query2.entity2,this.query2.limitNum,this.jumpNum, this.query2.current.end);
+      this.query2.current.start = this.query2.current.end;
+      this.query2.current.end += this.query2.limitNum;
+      this.query2.page+=1;
     },
     onPrev2(){
       console.log("query2 previous");
-      this.query2.current = this.query2.current-this.query2.limitNum<0 ? 0 : this.query2.current-this.query2.limitNum;
-      this.readJSON2(this.query2.entity1,this.query2.entity2,this.query2.limitNum,this.jumpNum, this.query2.current);
+      this.query2.current.start = this.query2.current.start-this.query2.limitNum<0 ? 0 : this.query2.current.start-this.query2.limitNum;
+      this.readJSON2(this.query2.entity1,this.query2.entity2,this.query2.limitNum,this.jumpNum, this.query2.current.start);
+      this.query2.current.end+=this.query2.limitNum;
+      console.log(this.query2.current.start)
+      if (this.query2.current.start==0){
+        this.query2.page=1;
+      }
+      else this.query2.page-=1;
     },
 
     handleCommand(_command) {
@@ -580,6 +617,9 @@ export default {
       let res = await this.axios.get(req);
       console.log("cha1")
       console.log(res)
+      if (res.data.code==0){
+        console.log("aaaaa")
+      }
       var d = res.data.data.links;
       this.searched1 = res.data.data.name;
       var id = [];
@@ -623,6 +663,7 @@ export default {
       };
       // console.log(this.singleOption.series[0].links)
       myChart.setOption(this.singleOption);
+
       this.isPaginationShow1 = true;
     },
 
