@@ -123,7 +123,7 @@
             </div>
             <div
               id="myChart2"
-              :style="{width: '1100px', height: '600px',margin:'auto', border: '1px solid grey'} "
+              :style="{width: canvasWidth, height: canvasHeight, margin:'auto', border: '1px solid grey'}"
               v-show="this.asideClick.doubleQuery==true"
             ></div>
             <!--<el-pagination-->
@@ -137,11 +137,11 @@
           </div>
           <div style="display: flex" v-show="this.asideClick.analysis==true">
             <div >
-              <div id="myChart3" :style="{width: '600px', height: '600px',margin:'auto'} " align="center"></div>
+              <div id="myChart3" :style="{width: simChartWidth, height: canvasHeight, margin:'auto'} " align="center"></div>
               <div align="center">Jaccard相似度</div>
             </div>
             <div >
-              <div id="myChart4" :style="{width: '600px', height: '600px',margin:'auto'} " align="center"></div>
+              <div id="myChart4" :style="{width: simChartWidth, height: canvasHeight, margin:'auto'} " align="center"></div>
               <div align="center">Cosine相似度</div>
             </div>
           </div>
@@ -161,8 +161,9 @@ export default {
       height: `${document.documentElement.clientHeight}`,
       width: `${document.documentElement.clientWidth}`,
 
-      canvasHeight: '600px',
-      canvasWidth: '1100px',
+      canvasHeight: '',
+      canvasWidth: '',
+      simChartWidth: '',
       currResizeableChart: null,
       asideClick: {
         singleQuery: false,
@@ -355,8 +356,10 @@ export default {
       var inputHeight = document.getElementById("input").offsetHeight;
       var _this = this;
       _this.canvasHeight = `${_this.height - dashBoardHeight - inputHeight - 100}px`;
+      _this.simChartWidth = `${(0.85 * _this.width) / 2}px`
       _this.canvasWidth = `${0.85 * _this.width - 90}px`;
       if(_this.asideClick.singleQuery && _this.myChart){
+        console.log("Resize myChart")
         _this.myChart.resize();
       }else if(_this.asideClick.doubleQuery && _this.myChart2){
         _this.myChart2.resize();
@@ -548,6 +551,7 @@ export default {
           this.jumpNum,
           0
         );
+        this.reset_canvas_size();
         this.query2.current+=this.query2.limitNum;
       }
     },
