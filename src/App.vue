@@ -45,7 +45,7 @@
                 </el-form-item>
                 <el-form-item v-show="this.isPaginationShow1==true">
                   <el-button type="primary" icon="el-icon-arrow-left" @click="onPrev1">上一页</el-button>
-                  <span>{{this.query1.page}}</span>
+                  <span>{{this.query1.current.start}} ~ {{this.query1.current.end}}</span>
                   <el-button type="primary" @click="onNext1">下一页<i class="el-icon-arrow-right el-icon--right"></i></el-button>
                 </el-form-item>
 
@@ -82,7 +82,7 @@
                 </el-form-item>
                 <el-form-item v-show="this.isPaginationShow2==true">
                   <el-button type="primary" icon="el-icon-arrow-left" @click="onPrev2">上一页</el-button>
-                  <span>{{this.query2.page}}</span>
+                  <span>{{this.query2.current.start}} ~ {{this.query2.current.end}}</span>
                   <el-button type="primary" @click="onNext2">下一页<i class="el-icon-arrow-right el-icon--right"></i></el-button>
                 </el-form-item>
               </el-form>
@@ -159,6 +159,7 @@
 </template>
 
 <script>
+import VUE from 'vue'
 export default {
   name: "App",
   data() {
@@ -356,6 +357,7 @@ export default {
     this.myChart2.on("dblclick", { dataType: "node" }, params => {
       this.update_data(this.myChart2, params.name, this.name_set2);
     });
+    _this.reset_canvas_size();
     window.onresize = () => {
       _this.reset_canvas_size();
     }
@@ -371,12 +373,13 @@ export default {
       _this.canvasHeight = `${_this.height - dashBoardHeight - inputHeight - 100}px`;
       _this.simChartWidth = `${(0.85 * _this.width) / 2}px`
       _this.canvasWidth = `${0.85 * _this.width - 90}px`;
-      if(_this.asideClick.singleQuery && _this.myChart){
-        console.log("Resize myChart")
-        _this.myChart.resize();
-      }else if(_this.asideClick.doubleQuery && _this.myChart2){
-        _this.myChart2.resize();
-      }
+      VUE.nextTick(() => {
+        if(_this.asideClick.singleQuery && _this.myChart){
+          _this.myChart.resize();
+        }else if(_this.asideClick.doubleQuery && _this.myChart2){
+          _this.myChart2.resize();
+        }
+      });
     },
     create_node0(name) {
       var tempData = {};
@@ -497,8 +500,10 @@ export default {
       this.isPaginationShow1=false;
       this.isPaginationShow2=false;
       this.asideClick.analysis=false;
-      this.asideClick.doubleQuery == false;
-      this.reset_canvas_size();
+      this.asideClick.doubleQuery = false;
+      VUE.nextTick(()=>{
+        this.reset_canvas_size();
+      });
     },
     clickDouble() {
       this.asideClick.doubleQuery=this.asideClick.doubleQuery===false?true:false;
@@ -506,7 +511,9 @@ export default {
       this.isPaginationShow1=false;
       this.isPaginationShow2=false;
       this.asideClick.analysis=false;
-      this.reset_canvas_size();
+      VUE.nextTick(()=>{
+        this.reset_canvas_size();
+      });
     },
 
     clickAnalysis(){
@@ -544,7 +551,6 @@ export default {
         await this.readJSON1(this.query1.entity, 0, this.query1.limitNum);
         this.query1.current.end = this.query1.limitNum;
         this.query1.page = 1;
-        this.reset_canvas_size();
       }
     },
     onSubmit2() {
@@ -635,6 +641,7 @@ export default {
     },
 
     async readJSON1(_nodeName, _start, _limit) {
+      this.reset_canvas_size();
       var myChart = this.$echarts.init(document.getElementById("myChart"));
       myChart.setOption(this.singleOption);
       myChart.on('mouseup',function(params){
@@ -710,10 +717,9 @@ export default {
         text: "Single Search of " + `${this.query1.entity}`
       };
       // console.log(this.singleOption.series[0].links)
-      myChart.setOption(this.singleOption);
+      await myChart.setOption(this.singleOption);
       nodeData.fixed = true;
-      myChart.setOption(this.singleOption);
-      this.reset_canvas_size();
+      await myChart.setOption(this.singleOption);
       this.isPaginationShow1 = true;
       return true;
     },
