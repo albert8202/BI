@@ -457,7 +457,14 @@ export default {
         "/" +
         5;
       var create_node=this.create_node0
+      var _this = this;
+      this.loading = true;
       this.axios.get(req).then(res => {
+        _this.loading = false;
+        if(res.data.code !== 0){
+          _this.showNodeNotExists();
+          return;
+        }
         var d = res.data.data.links;
         var size = d.length;
         var nodesLink=option.series[0].links
@@ -668,12 +675,15 @@ export default {
       console.log(req);
       this.loading = true;
       let res = await this.axios.get(req);
+      console.log("test", res);
       this.loading = false;
+      var _this = this;
+      if(res.data.code !== 0){
+        _this.showNodeNotExists();
+        return false;
+      }
       console.log("cha1")
       console.log(res)
-      if (res.data.code==0){
-        console.log("aaaaa")
-      }
       var d = res.data.data.links;
       if(d.length === 0){
         return false;
@@ -753,6 +763,11 @@ export default {
         }
       });
       this.loading = false;
+      var _this = this;
+      if(res.data.code !== 0){
+        _this.showNodeNotExists();
+        return;
+      }
       console.log("aaa")
       console.log(res)
       var d = res.data.data.nodes;
@@ -821,6 +836,11 @@ export default {
         }
       });
       this.loading = false;
+      var _this = this;
+      if(res.data.code !== 0){
+        _this.showNodeNotExists();
+        return;
+      }
 
       console.log(res)
       var myChart1 = this.$echarts.init(document.getElementById('myChart3'));
@@ -835,6 +855,13 @@ export default {
       myChart2.setOption(this.analyseOptions.cOption);
       this.reset_canvas_size();
       return true;
+    },
+    showNodeNotExists(){
+      this.$message({
+          showClose: true,
+          message: '节点不存在！',
+          type: 'warning'
+        });
     }
 
   }
