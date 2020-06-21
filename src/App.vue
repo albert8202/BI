@@ -766,7 +766,7 @@ export default {
       var _this = this;
       if(res.data.code !== 0){
         _this.showNodeNotExists();
-        return;
+        return false;
       }
       console.log("aaa")
       console.log(res)
@@ -839,7 +839,7 @@ export default {
       var _this = this;
       if(res.data.code !== 0){
         _this.showNodeNotExists();
-        return;
+        return false;
       }
 
       console.log(res)
