@@ -595,6 +595,8 @@ export default {
       console.log("query1 next");
       var hasMore = await this.readJSON1(this.query1.entity,this.query1.current.end,this.query1.limitNum);
       if(!hasMore){
+        console.log("show?")
+        this.showNoMoreNodes();
         return;
       }
       this.query1.current.start=this.query1.current.end
@@ -626,6 +628,7 @@ export default {
       console.log("query2 next");
       var hasMore = await this.readJSON2(this.query2.entity1,this.query2.entity2,this.query2.limitNum,this.jumpNum, this.query2.current.end);
       if(!hasMore){
+        this.showNoMoreNodes();
         return;
       }
       this.query2.current.start = this.query2.current.end;
@@ -685,7 +688,7 @@ export default {
       console.log("cha1")
       console.log(res)
       var d = res.data.data.links;
-      if(d.length === 0){
+      if(!d || d.length === 0){
         return false;
       }
       this.searched1 = res.data.data.name;
@@ -860,6 +863,13 @@ export default {
       this.$message({
           showClose: true,
           message: '节点不存在！',
+          type: 'warning'
+        });
+    },
+    showNoMoreNodes(){
+      this.$message({
+          showClose: true,
+          message: '到头了',
           type: 'warning'
         });
     }
