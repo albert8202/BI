@@ -1,8 +1,8 @@
 
 <template>
-  <div id="app">
+  <div id="app" :style="{height: height + 'px', width: width + 'px'}">
     <el-container>
-      <el-aside width="200px" style="height: 1000px">
+      <el-aside :style="{width: 0.15 * width, height: '100%'}">
         <!--<span>Dashboard</span>-->
         <el-menu
           class="el-menu-vertical-demo"
@@ -27,14 +27,14 @@
         </el-menu>
       </el-aside>
 
-      <el-container>
-        <el-header>
+      <el-container style="height: 100%; width: 85%;">
+        <el-header id="Dashboard">
           <el-menu class="el-menu-demo" mode="horizontal">
             <div class="dashboard">Dashboard</div>
           </el-menu>
         </el-header>
         <el-main>
-          <div>
+          <div id='input'>
             <div class="query-single-entity" v-show="this.asideClick.singleQuery==true">
               <el-form :inline="true" :model="query1" class="demo-form-inline">
                 <el-form-item label="实体">
@@ -75,7 +75,7 @@
                 </el-form-item>
               </el-form>
             </div>
-            <div class="query-two-entity"v-show="this.asideClick.analysis==true">
+            <div class="query-two-entity" v-show="this.asideClick.analysis==true">
               <el-form :inline="true" :model="query3" class="demo-form-inline">
                 <el-form-item label="实体1">
                   <el-input v-model="query3.entity1" placeholder="输入查询的实体1"></el-input>
@@ -98,12 +98,12 @@
             <div align="center" style="margin-bottom: 4px" v-show="this.isPaginationShow1==true">
               <el-button-group >
                 <el-button type="primary" icon="el-icon-arrow-left" @click="onPrev1">上一页</el-button>
-                <el-button type="primary"@click="onNext1">下一页<i class="el-icon-arrow-right el-icon--right"></i></el-button>
+                <el-button type="primary" @click="onNext1">下一页<i class="el-icon-arrow-right el-icon--right"></i></el-button>
               </el-button-group>
             </div>
             <div
               id="myChart"
-              :style="{width: '1100px', height: '600px',margin:'auto', border: '1px solid grey'} "
+              :style="{width: canvasWidth, height: canvasHeight, margin:'auto', border: '1px solid grey'} "
               v-show="this.asideClick.singleQuery==true"
             ></div>
             <!--<el-pagination-->
@@ -118,7 +118,7 @@
             <div align="center" style="margin-bottom: 4px" v-show="this.isPaginationShow2==true">
               <el-button-group >
                 <el-button type="primary" icon="el-icon-arrow-left"@click="onPrev2">上一页</el-button>
-                <el-button type="primary"@click="onNext2">下一页<i class="el-icon-arrow-right el-icon--right"></i></el-button>
+                <el-button type="primary" @click="onNext2">下一页<i class="el-icon-arrow-right el-icon--right"></i></el-button>
               </el-button-group>
             </div>
             <div
@@ -158,6 +158,12 @@ export default {
   data() {
     return {
       host:'http://yzchnb.xicp.io:28102/',
+      height: `${document.documentElement.clientHeight}`,
+      width: `${document.documentElement.clientWidth}`,
+
+      canvasHeight: '600px',
+      canvasWidth: '1100px',
+      currResizeableChart: null,
       asideClick: {
         singleQuery: false,
         doubleQuery: false,
@@ -167,13 +173,13 @@ export default {
       isPaginationShow2: false,
       query1: {
         entity: "",
-        limitNum:50,
+        limitNum:20,
         current:0
       },
       query2: {
         entity1: "",
         entity2: "",
-        limitNum:50,
+        limitNum:20,
         current:0
       },
       query3:{
@@ -184,7 +190,10 @@ export default {
       searched1: "",
       searched21: "",
       searched22: "",
-
+      name_set: new Set(),
+      name_set2: new Set(),
+      myChart: null,
+      myChart2: null,
 
       singleOption: {
         tooltip: {},
@@ -228,13 +237,10 @@ export default {
             symbolSize: 29,
             data: [],
             links: [],
-            name_set: new Set(),
-            name_set2: new Set(),
-            myChart: null,
-            myChart2: null
           }
         ]
       },
+      
       doubleOption: {
         tooltip: {},
         animationDurationUpdate: function(idx) {
@@ -325,6 +331,8 @@ export default {
     // }
   },
   mounted() {
+    var _this = this;
+    document.getElementById("input").offsetHeight;
     this.myChart = this.$echarts.init(document.getElementById("myChart"));
     this.myChart.on("dblclick", { dataType: "node" }, params => {
       this.update_data(this.myChart, params.name,this.name_set);
@@ -333,9 +341,27 @@ export default {
     this.myChart2.on("dblclick", { dataType: "node" }, params => {
       this.update_data(this.myChart2, params.name, this.name_set2);
     });
+    this.reset_canvas_size();
+    window.onresize = () => {
+      _this.height = `${document.documentElement.clientHeight}`;
+      _this.width  = `${document.documentElement.clientWidth}`;
+      _this.reset_canvas_size();
+    }
   },
 
   methods: {
+    reset_canvas_size(){
+      var dashBoardHeight = document.getElementById("Dashboard").offsetHeight;
+      var inputHeight = document.getElementById("input").offsetHeight;
+      var _this = this;
+      _this.canvasHeight = `${_this.height - dashBoardHeight - inputHeight - 100}px`;
+      _this.canvasWidth = `${0.85 * _this.width - 90}px`;
+      if(_this.asideClick.singleQuery && _this.myChart){
+        _this.myChart.resize();
+      }else if(_this.asideClick.doubleQuery && _this.myChart2){
+        _this.myChart2.resize();
+      }
+    },
     create_node0(name) {
       var tempData = {};
       tempData.name = name;
@@ -498,8 +524,8 @@ export default {
           type: "warning"
         });
       } else {
-        this.readJSON1(this.query1.entity, 0, 100);
-        this.query1.current+=100;
+        this.readJSON1(this.query1.entity, 0, this.query1.limitNum);
+        this.query1.current+=this.query1.limitNum;
       }
     },
     onSubmit2() {
@@ -518,11 +544,11 @@ export default {
         this.readJSON2(
           this.query2.entity1,
           this.query2.entity2,
-          20,
+          this.query2.limitNum,
           this.jumpNum,
           0
         );
-        this.query2.current+=20;
+        this.query2.current+=this.query2.limitNum;
       }
     },
 
@@ -589,6 +615,10 @@ export default {
       var nodesData = [];
       var nodesLink = [];
       var nodeData = this.create_node0(this.searched1);
+      //中心点，将位置固定，并且更换颜色
+      nodeData.itemStyle.normal.color = "rgb(100, 100, 100)";
+      nodeData.itemStyle.normal.shadowColor = "rgb(100, 100, 100)";
+      nodeData.itemStyle.normal.borderColor = "rgb(100, 100, 100)";
       this.name_set = new Set();
       nodesData.push(nodeData);
       this.name_set.add(nodeData.name);
@@ -623,6 +653,8 @@ export default {
       };
       // console.log(this.singleOption.series[0].links)
       myChart.setOption(this.singleOption);
+      nodeData.fixed = true;
+      myChart.setOption(this.singleOption);
       this.isPaginationShow1 = true;
     },
 
@@ -630,6 +662,13 @@ export default {
     async readJSON2(_node1, _node2, _limit, _jump, _skip) {
       var myChart = this.myChart2;
       myChart.setOption(this.doubleOption);
+      myChart.on('mouseup',function(params){
+        var option=myChart.getOption();
+        option.series[0].data[params.dataIndex].x=params.event.offsetX;
+        option.series[0].data[params.dataIndex].y=params.event.offsetY;
+        option.series[0].data[params.dataIndex].fixed=true;
+        myChart.setOption(option);
+      });
       var req = this.host+"query/getPathsByTwoNodes";
 
       var res = await this.axios.get(req, {
