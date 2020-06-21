@@ -726,6 +726,7 @@ export default {
 
     //_skip跳过前面多少结点
     async readJSON2(_node1, _node2, _limit, _jump, _skip) {
+      await this.reset_canvas_size();
       var myChart = this.myChart2;
       myChart.setOption(this.doubleOption);
       myChart.on('mouseup',function(params){
@@ -795,7 +796,14 @@ export default {
           `${this.query2.entity2}`
       };
       myChart.setOption(this.doubleOption);
+      for(var d of nodesData){
+        if(d.name === _node1 || d.name === _node2){
+          d.fixed = true;
+        }
+      }
+      myChart.setOption(this.doubleOption);
       this.isPaginationShow2 = true;
+      return true;
     },
     async readJSON3(_name1,_name2){
       var req = this.host+'query/getSimilarityByTwoNodes';
