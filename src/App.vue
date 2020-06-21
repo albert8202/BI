@@ -108,6 +108,7 @@
 
           <div>
             <div
+              v-loading="loading"
               id="myChart"
               :style="{width: canvasWidth, height: canvasHeight, margin:'auto', border: '1px solid grey'} "
               v-show="this.asideClick.singleQuery==true"
@@ -128,6 +129,7 @@
               <!--</el-button-group>-->
             <!--</div>-->
             <div
+              v-loading="loading"
               id="myChart2"
               :style="{width: canvasWidth, height: canvasHeight, margin:'auto', border: '1px solid grey'}"
               v-show="this.asideClick.doubleQuery==true"
@@ -143,11 +145,11 @@
           </div>
           <div style="display: flex" v-show="this.asideClick.analysis==true">
             <div >
-              <div id="myChart3" :style="{width: simChartWidth, height: canvasHeight, margin:'auto'} " align="center"></div>
+              <div v-loading="loading" id="myChart3" :style="{width: simChartWidth, height: canvasHeight, margin:'auto'} " align="center"></div>
               <div align="center">Jaccard相似度</div>
             </div>
             <div >
-              <div id="myChart4" :style="{width: simChartWidth, height: canvasHeight, margin:'auto'} " align="center"></div>
+              <div v-loading="loading" id="myChart4" :style="{width: simChartWidth, height: canvasHeight, margin:'auto'} " align="center"></div>
               <div align="center">Cosine相似度</div>
             </div>
           </div>
@@ -167,7 +169,7 @@ export default {
       host:'http://yzchnb.xicp.io:28102/',
       height: `${document.documentElement.clientHeight}`,
       width: `${document.documentElement.clientWidth}`,
-
+      loading: false,
       canvasHeight: '',
       canvasWidth: '',
       simChartWidth: '',
@@ -549,6 +551,7 @@ export default {
         });
       } else {
         await this.readJSON1(this.query1.entity, 0, this.query1.limitNum);
+        this.query1.current.start = 0;
         this.query1.current.end = this.query1.limitNum;
         this.query1.page = 1;
       }
@@ -574,7 +577,8 @@ export default {
           0
         );
         this.reset_canvas_size();
-        this.query2.current.end += this.query2.limitNum;
+        this.query2.current.start = 0;
+        this.query2.current.end = this.query2.limitNum;        
         this.query2.page = 1;
       }
     },
@@ -662,7 +666,9 @@ export default {
         "/" +
         _limit;
       console.log(req);
+      this.loading = true;
       let res = await this.axios.get(req);
+      this.loading = false;
       console.log("cha1")
       console.log(res)
       if (res.data.code==0){
@@ -726,7 +732,6 @@ export default {
 
     //_skip跳过前面多少结点
     async readJSON2(_node1, _node2, _limit, _jump, _skip) {
-      await this.reset_canvas_size();
       var myChart = this.myChart2;
       myChart.setOption(this.doubleOption);
       myChart.on('mouseup',function(params){
@@ -737,7 +742,7 @@ export default {
         myChart.setOption(option);
       });
       var req = this.host+"query/getPathsByTwoNodes";
-
+      this.loading = true;
       var res = await this.axios.get(req, {
         params: {
           endNodeName: _node2,
@@ -747,6 +752,7 @@ export default {
           startNodeName: _node1
         }
       });
+      this.loading = false;
       console.log("aaa")
       console.log(res)
       var d = res.data.data.nodes;
@@ -807,12 +813,14 @@ export default {
     },
     async readJSON3(_name1,_name2){
       var req = this.host+'query/getSimilarityByTwoNodes';
+      this.loading = true;
       var res = await this.axios(req,{
         params:{
           name1:_name1,
           name2:_name2
         }
       });
+      this.loading = false;
 
       console.log(res)
       var myChart1 = this.$echarts.init(document.getElementById('myChart3'));
