@@ -94,34 +94,46 @@
 
 
 
-
-
           <div>
+            <div align="center" style="margin-bottom: 4px" v-show="this.isPaginationShow1==true">
+              <el-button-group >
+                <el-button type="primary" icon="el-icon-arrow-left" @click="onPrev1">上一页</el-button>
+                <el-button type="primary"@click="onNext1">下一页<i class="el-icon-arrow-right el-icon--right"></i></el-button>
+              </el-button-group>
+            </div>
             <div
               id="myChart"
               :style="{width: '1100px', height: '600px',margin:'auto', border: '1px solid grey'} "
               v-show="this.asideClick.singleQuery==true"
             ></div>
-            <el-pagination
-              v-show="this.isPaginationShow1==true"
-              layout="prev, pager, next"
-              :total="1000"
-              align="center"
-            ></el-pagination>
+            <!--<el-pagination-->
+              <!--v-show="this.isPaginationShow1==true"-->
+              <!--layout="prev, pager, next"-->
+              <!--:total="1000"-->
+              <!--align="center"-->
+            <!--&gt;</el-pagination>-->
           </div>
 
           <div>
+            <div align="center" style="margin-bottom: 4px" v-show="this.isPaginationShow2==true">
+              <el-button-group >
+                <el-button type="primary" icon="el-icon-arrow-left"@click="onPrev2">上一页</el-button>
+                <el-button type="primary"@click="onNext2">下一页<i class="el-icon-arrow-right el-icon--right"></i></el-button>
+              </el-button-group>
+            </div>
             <div
               id="myChart2"
               :style="{width: '1100px', height: '600px',margin:'auto', border: '1px solid grey'} "
               v-show="this.asideClick.doubleQuery==true"
             ></div>
-            <el-pagination
-              v-show="this.isPaginationShow2==true"
-              layout="prev, pager, next"
-              :total="1000"
-              align="center"
-            ></el-pagination>
+            <!--<el-pagination-->
+              <!--v-show="this.isPaginationShow2==true"-->
+              <!--layout="prev, pager, next"-->
+              <!--:total="1000"-->
+              <!--align="center"-->
+            <!--&gt;</el-pagination>-->
+
+
           </div>
           <div style="display: flex" v-show="this.asideClick.analysis==true">
             <div >
@@ -154,11 +166,15 @@ export default {
       isPaginationShow1: false,
       isPaginationShow2: false,
       query1: {
-        entity: ""
+        entity: "",
+        limitNum:50,
+        current:0
       },
       query2: {
         entity1: "",
-        entity2: ""
+        entity2: "",
+        limitNum:50,
+        current:0
       },
       query3:{
         entity1:'',
@@ -168,6 +184,7 @@ export default {
       searched1: "",
       searched21: "",
       searched22: "",
+
 
       singleOption: {
         tooltip: {},
@@ -188,6 +205,17 @@ export default {
             label: {
               show: true, //是否显示标签。
               position: "inside"
+            },
+            edgeLabel: {
+              normal: {
+                show: true,
+                textStyle: {
+                  fontSize: 13
+                },
+                formatter(x) {
+                  return x.data.name;
+                }
+              }
             },
             roam: true,
             force: {
@@ -226,6 +254,17 @@ export default {
             label: {
               show: true, //是否显示标签。
               position: "inside"
+            },
+            edgeLabel: {
+              normal: {
+                show: true,
+                textStyle: {
+                  fontSize: 13
+                },
+                formatter(x) {
+                  return x.data.name;
+                }
+              }
             },
             roam: true,
             force: {
@@ -403,7 +442,7 @@ export default {
             continue
           }
           tempLink.name = d[i].r;
-          tempLink.des = d[i].r;
+          // tempLink.des = d[i].r;
           nodesLink.push(tempLink);
         }
         chart.setOption(option)
@@ -411,20 +450,20 @@ export default {
 
     },
     clickSingle() {
-      this.asideClick.singleQuery=this.asideClick.singleQuery===false?true:false
-      this.asideClick.doubleQuery=false
-      this.isPaginationShow1=false
-      this.isPaginationShow2=false
-      this.asideClick.analysis=false
+      this.asideClick.singleQuery=this.asideClick.singleQuery===false?true:false;
+      this.asideClick.doubleQuery=false;
+      this.isPaginationShow1=false;
+      this.isPaginationShow2=false;
+      this.asideClick.analysis=false;
 
       this.asideClick.doubleQuery == false;
     },
     clickDouble() {
-      this.asideClick.doubleQuery=this.asideClick.doubleQuery===false?true:false
-      this.asideClick.singleQuery=false
-      this.isPaginationShow1=false
-      this.isPaginationShow2=false
-      this.asideClick.analysis=false
+      this.asideClick.doubleQuery=this.asideClick.doubleQuery===false?true:false;
+      this.asideClick.singleQuery=false;
+      this.isPaginationShow1=false;
+      this.isPaginationShow2=false;
+      this.asideClick.analysis=false;
     },
 
     clickAnalysis(){
@@ -460,6 +499,7 @@ export default {
         });
       } else {
         this.readJSON1(this.query1.entity, 0, 100);
+        this.query1.current+=100;
       }
     },
     onSubmit2() {
@@ -482,8 +522,35 @@ export default {
           this.jumpNum,
           0
         );
+        this.query2.current+=20;
       }
     },
+
+    //分页
+    onNext1(){
+      console.log("query1 next");
+      this.readJSON1(this.query1.entity,this.query1.current,this.query1.limitNum);
+      this.query1.current+=this.query1.limitNum;
+    },
+
+    onPrev1(){
+      console.log("query1 previous");
+
+      this.query1.current=this.query1.current-this.query1.limitNum < 0 ? 0:this.query1.current-this.query1.limitNum;
+      this.readJSON1(this.query1.entity,this.query1.current,this.query1.limitNum);
+
+    },
+    onNext2(){
+      console.log("query2 next");
+      this.readJSON2(this.query2.entity1,this.query2.entity2,this.query2.limitNum,this.jumpNum, this.query2.current);
+      this.query2.current+=this.query2.limitNum;
+    },
+    onPrev2(){
+      console.log("query2 previous");
+      this.query2.current = this.query2.current-this.query2.limitNum<0 ? 0 : this.query2.current-this.query2.limitNum;
+      this.readJSON2(this.query2.entity1,this.query2.entity2,this.query2.limitNum,this.jumpNum, this.query2.current);
+    },
+
     handleCommand(_command) {
       this.jumpNum = Number(_command);
       console.log(this.jumpNum);
@@ -501,7 +568,8 @@ export default {
       });
 
       var req =
-        "http://yzchnb.xicp.io:28102/query/getSingleLinksByNamePageable" +
+        this.host+
+        "query/getSingleLinksByNamePageable" +
         "/" +
         _nodeName +
         "/" +
@@ -510,6 +578,8 @@ export default {
         _limit;
       console.log(req);
       let res = await this.axios.get(req);
+      console.log("cha1")
+      console.log(res)
       var d = res.data.data.links;
       this.searched1 = res.data.data.name;
       var id = [];
@@ -541,8 +611,8 @@ export default {
           tempLink.source = this.searched1;
           tempLink.target = d[i].n;
         }
-        tempLink.name = d[i].r;
-        tempLink.des = d[i].r;
+        tempLink.name=d[i].r;
+
         nodesLink.push(tempLink);
       }
 
@@ -551,6 +621,7 @@ export default {
       this.singleOption.title = {
         text: "Single Search of " + `${this.query1.entity}`
       };
+      // console.log(this.singleOption.series[0].links)
       myChart.setOption(this.singleOption);
       this.isPaginationShow1 = true;
     },
@@ -559,7 +630,8 @@ export default {
     async readJSON2(_node1, _node2, _limit, _jump, _skip) {
       var myChart = this.myChart2;
       myChart.setOption(this.doubleOption);
-      var req = "http://yzchnb.xicp.io:28102/query/getPathsByTwoNodes";
+      var req = this.host+"query/getPathsByTwoNodes";
+
       var res = await this.axios.get(req, {
         params: {
           endNodeName: _node2,
@@ -569,7 +641,8 @@ export default {
           startNodeName: _node1
         }
       });
-      console.log(res);
+      console.log("aaa")
+      console.log(res)
       var d = res.data.data.nodes;
       var nodesData = [];
       var nodesLink = [];
