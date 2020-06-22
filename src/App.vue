@@ -624,7 +624,7 @@ export default {
       this.readJSON1(this.query1.entity,this.query1.current.start,this.query1.limitNum);
       // console.log(this.query1.current.start, this.query1.current.end,typeof this.query1.limitNum);
 
-      this.query1.current.end+=this.query1.limitNum;
+      this.query1.current.end -= this.query1.limitNum;
 
       if (this.query1.current.start==0){
         this.query1.page=1;
@@ -650,7 +650,7 @@ export default {
       }
       this.query2.current.start = this.query2.current.start-this.query2.limitNum<0 ? 0 : this.query2.current.start-this.query2.limitNum;
       this.readJSON2(this.query2.entity1,this.query2.entity2,this.query2.limitNum,this.jumpNum, this.query2.current.start);
-      this.query2.current.end+=this.query2.limitNum;
+      this.query2.current.end -= this.query2.limitNum;
       console.log(this.query2.current.start)
       if (this.query2.current.start==0){
         this.query2.page=1;
@@ -702,14 +702,12 @@ export default {
         _this.showNodeNotExists();
         return false;
       }
-      console.log("cha1")
-      console.log(res)
+      console.log("cha1", res)
       var d = res.data.data.links;
       if(!d || d.length === 0){
         return false;
       }
       this.searched1 = res.data.data.name;
-      var id = [];
       // console.log(d);
       // console.log(d[1]);
       // console.log(typeof d);
@@ -728,8 +726,7 @@ export default {
         var tempData = {};
         var tempLink = {};
         //找不到
-        if (id.indexOf(d[i].n) == -1) {
-          id.push(d[i].n);
+        if (!this.name_set.has(d[i].n)) {
           this.name_set.add(d[i].n);
           tempData = this.create_node0(d[i].n);
           nodesData.push(tempData);
