@@ -438,7 +438,7 @@ export default {
       }
       return tempData;
     },
-    update_data(chart, name, name_set) {
+    async update_data(chart, name, name_set) {
       var option = chart.getOption();
       var search_func = (links, source, target) => {
         for (var i = 0; i < links.length; ++i) {
@@ -459,8 +459,17 @@ export default {
       var create_node=this.create_node0
       var _this = this;
       this.loading = true;
-      this.axios.get(req).then(res => {
+      var res = null;
+      try{
+        res = await this.axios.get(req);
+        this.loading = false;
+      }catch(e){
         _this.loading = false;
+        _this.showError();
+        return;
+      }      
+      var processRes = function(res){
+        
         if(res.data.code !== 0){
           _this.showNodeNotExists();
           return;
@@ -500,8 +509,8 @@ export default {
           nodesLink.push(tempLink);
         }
         chart.setOption(option)
-      });
-
+      }
+      processRes(res);
     },
     clickSingle() {
       this.asideClick.singleQuery=this.asideClick.singleQuery===false?true:false;
@@ -655,6 +664,7 @@ export default {
     },
 
     async readJSON1(_nodeName, _start, _limit) {
+      var _this = this;
       this.reset_canvas_size();
       var myChart = this.$echarts.init(document.getElementById("myChart"));
       myChart.setOption(this.singleOption);
@@ -677,7 +687,14 @@ export default {
         _limit;
       console.log(req);
       this.loading = true;
-      let res = await this.axios.get(req);
+      var res = null;
+      try{
+        res = await this.axios.get(req);
+      }catch(e){
+        _this.loading = false;
+        _this.showError();
+        return;
+      }
       console.log("test", res);
       this.loading = false;
       var _this = this;
@@ -745,6 +762,7 @@ export default {
 
     //_skip跳过前面多少结点
     async readJSON2(_node1, _node2, _limit, _jump, _skip) {
+      var _this = this;
       var myChart = this.myChart2;
       myChart.setOption(this.doubleOption);
       myChart.on('mouseup',function(params){
@@ -756,7 +774,9 @@ export default {
       });
       var req = this.host+"query/getPathsByTwoNodes";
       this.loading = true;
-      var res = await this.axios.get(req, {
+      var res = null;
+      try{
+        res = await this.axios.get(req, {
         params: {
           endNodeName: _node2,
           limit_num: _limit,
@@ -765,6 +785,11 @@ export default {
           startNodeName: _node1
         }
       });
+      }catch(e){
+        _this.loading = false;
+        _this.showError();
+        return false;
+      }
       this.loading = false;
       var _this = this;
       if(res.data.code !== 0){
@@ -832,12 +857,20 @@ export default {
     async readJSON3(_name1,_name2){
       var req = this.host+'query/getSimilarityByTwoNodes';
       this.loading = true;
-      var res = await this.axios(req,{
-        params:{
-          name1:_name1,
-          name2:_name2
-        }
-      });
+      var res = null;
+      var _this = this;
+      try{
+        res = await this.axios(req,{
+          params:{
+            name1:_name1,
+            name2:_name2
+          }
+        });
+      }catch(e){
+        _this.loading = false;
+        _this.showError();
+        return;
+      }
       this.loading = false;
       var _this = this;
       if(res.data.code !== 0){
@@ -870,6 +903,13 @@ export default {
       this.$message({
           showClose: true,
           message: '到头了',
+          type: 'warning'
+        });
+    },
+    showError(){
+      this.$message({
+          showClose: true,
+          message: '出错了',
           type: 'warning'
         });
     }
