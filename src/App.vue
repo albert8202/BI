@@ -352,13 +352,7 @@ export default {
     var _this = this;
     document.getElementById("input").offsetHeight;
     this.myChart = this.$echarts.init(document.getElementById("myChart"));
-    this.myChart.on("dblclick", { dataType: "node" }, params => {
-      this.update_data(this.myChart, params.name,this.name_set);
-    });
     this.myChart2 = this.$echarts.init(document.getElementById("myChart2"));
-    this.myChart2.on("dblclick", { dataType: "node" }, params => {
-      this.update_data(this.myChart2, params.name, this.name_set2);
-    });
     _this.reset_canvas_size();
     window.onresize = () => {
       _this.reset_canvas_size();
@@ -650,7 +644,7 @@ export default {
       }
       this.query2.current.start = this.query2.current.start-this.query2.limitNum<0 ? 0 : this.query2.current.start-this.query2.limitNum;
       this.readJSON2(this.query2.entity1,this.query2.entity2,this.query2.limitNum,this.jumpNum, this.query2.current.start);
-      this.query2.current.end -= this.query2.limitNum;
+      this.query2.current.end-=this.query2.limitNum;
       console.log(this.query2.current.start)
       if (this.query2.current.start==0){
         this.query2.page=1;
@@ -665,16 +659,6 @@ export default {
 
     async readJSON1(_nodeName, _start, _limit) {
       var _this = this;
-      this.reset_canvas_size();
-      var myChart = this.$echarts.init(document.getElementById("myChart"));
-      myChart.setOption(this.singleOption);
-      myChart.on('mouseup',function(params){
-        var option=myChart.getOption();
-        option.series[0].data[params.dataIndex].x=params.event.offsetX;
-        option.series[0].data[params.dataIndex].y=params.event.offsetY;
-        option.series[0].data[params.dataIndex].fixed=true;
-        myChart.setOption(option);
-      });
 
       var req =
         this.host+
@@ -695,18 +679,29 @@ export default {
         _this.showError();
         return;
       }
-      console.log("test", res);
       this.loading = false;
       var _this = this;
       if(res.data.code !== 0){
         _this.showNodeNotExists();
         return false;
       }
-      console.log("cha1", res)
       var d = res.data.data.links;
       if(!d || d.length === 0){
         return false;
       }
+      this.myChart.dispose();
+      this.myChart = this.$echarts.init(document.getElementById("myChart"));
+      var myChart = this.myChart;
+      myChart.on('mouseup',function(params){
+        var option=myChart.getOption();
+        option.series[0].data[params.dataIndex].x=params.event.offsetX;
+        option.series[0].data[params.dataIndex].y=params.event.offsetY;
+        option.series[0].data[params.dataIndex].fixed=true;
+        myChart.setOption(option);
+      });
+      myChart.on("dblclick", { dataType: "node" }, params => {
+        _this.update_data(_this.myChart, params.name, _this.name_set);
+      });
       this.searched1 = res.data.data.name;
       // console.log(d);
       // console.log(d[1]);
@@ -760,15 +755,6 @@ export default {
     //_skip跳过前面多少结点
     async readJSON2(_node1, _node2, _limit, _jump, _skip) {
       var _this = this;
-      var myChart = this.myChart2;
-      myChart.setOption(this.doubleOption);
-      myChart.on('mouseup',function(params){
-        var option=myChart.getOption();
-        option.series[0].data[params.dataIndex].x=params.event.offsetX;
-        option.series[0].data[params.dataIndex].y=params.event.offsetY;
-        option.series[0].data[params.dataIndex].fixed=true;
-        myChart.setOption(option);
-      });
       var req = this.host+"query/getPathsByTwoNodes";
       this.loading = true;
       var res = null;
@@ -828,6 +814,20 @@ export default {
       if(!hasMore){
         return false;
       }
+      this.myChart2.dispose();
+      this.myChart2 = this.$echarts.init(document.getElementById("myChart2"));
+      var myChart = this.myChart2;
+      
+      myChart.on('mouseup',function(params){
+        var option=myChart.getOption();
+        option.series[0].data[params.dataIndex].x=params.event.offsetX;
+        option.series[0].data[params.dataIndex].y=params.event.offsetY;
+        option.series[0].data[params.dataIndex].fixed=true;
+        myChart.setOption(option);
+      });
+      myChart.on("dblclick", { dataType: "node" }, params => {
+        _this.update_data(myChart, params.name, _this.name_set2);
+      });
       for (var name of this.name_set2) {
         nodesData.push(create_node(name));
       }
